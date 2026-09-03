@@ -3,7 +3,18 @@
 Tracking problems worked through, organized by NeetCode's roadmap categories. Each entry notes the actual approach taken, bugs caught along the way, and where the code lives in this repo.
 
 ## Arrays & Hashing
-_(none yet)_
+
+_Worked through in a separate chat and imported here. Full per-problem write-ups live in `solutions/1-arrays-and-hashing/arrays_hashing_tips.md` — this is the condensed version._
+
+- [x] **Contains Duplicate** (LC 217) — existence check, so reach for a `set` not a counting `dict`. Naive nested-loop comparison is O(n²); a single pass tracking "have I seen this" is O(n).
+- [x] **Valid Anagram** (LC 242) — build a frequency `dict` from one string, then "spend down" counts while walking the other; any missing/zeroed key fails it. Not the same as a palindrome check.
+- [x] **Two Sum** (LC 1) — reframe as "what complement do I still need," not "what do these sum to." Dict maps value → index; check for the complement before inserting the current value, which naturally prevents reusing an element.
+- [x] **Group Anagrams** (LC 49) — sorting a word's letters gives a canonical signature shared by every anagram of it; a dict keyed by signature groups everything in one pass instead of pairwise comparisons.
+- [x] **Top K Frequent Elements** (LC 347) — frequency is bounded by `len(nums)`, so use frequency itself as an array index (bucket sort) instead of sorting by count. The nested loop over buckets is still O(n) total since every element is visited exactly once.
+- [x] **Encode and Decode Strings** (LC 271) — a format-design problem, not an algorithm one. Length-prefixing each string (`"{len}#{string}"`) avoids ambiguity when a string contains whatever delimiter you'd otherwise pick.
+- [x] **Product of Array Except Self** (LC 238) — `answer[i]` = (product left of i) × (product right of i), each built with a single accumulating pass — no division needed, works fine with zeros in the array.
+- [x] **Valid Sudoku** (LC 36) — rows, columns, and 3×3 boxes are three independent "no duplicates" zones, each needing its own tracking set; a single global seen-set would be wrong. `(r // 3, c // 3)` keys the box.
+- [x] **Longest Consecutive Sequence** (LC 128) — walking forward from every number is O(n²) from redundant re-walks of the same run. Only start a walk from a true sequence start (`num - 1 not in set`) to make it O(n).
 
 ## Two Pointers
 _(none yet)_
