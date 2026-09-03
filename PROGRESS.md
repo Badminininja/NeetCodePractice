@@ -31,6 +31,14 @@ _(none yet)_
   - Also benchmarked the dict-lookup version against a chained triple-OR condition with `timeit` — dict version came out ~1.4-2x faster in practice, mainly because the OR-chain version was doing two independent, unconditional `if` checks (not `if`/`elif`) per character rather than one dict membership test.
   - Code + self-tests: `solutions/2-stack/01-valid-parentheses.py`
 
+- [x] **Min Stack** (LC 155) — 2026-09-03
+  - Two parallel stacks: `minStack` holds real values, `ActualMin` holds two entries per push so it stays index-synced with `minStack` and always ends with the correct running min on top.
+  - First bug: forgot `self.` entirely in the initial draft — local variables assigned in `__init__` don't persist past that call, so every other method was reading names that didn't exist in their scope.
+  - Second bug, after fixing `self.`: cached the running min in `self.smallest`, but `pop()` never updated it, so popping the current minimum off the stack left `self.smallest` stuck on a value no longer in the stack.
+  - Replaced the cached variable with `self.getMin()` (reads `ActualMin[-1]` live) so there's nothing left to go stale — but this introduced a third, subtler bug: `self.getMin()` is a live read, so calling it after already appending `val` to `ActualMin` in the same branch returns the value just appended, not the true prior minimum. Fixed by capturing `self.getMin()` into a local variable before mutating the list, not after.
+  - Verified against the official LeetCode example, a hand-built pop-then-push regression case, and 200 randomized trials fuzzed against a plain `min()` reference implementation.
+  - Code + self-tests: `solutions/2-stack/02-min-stack.py`
+
 ## Binary Search
 _(none yet)_
 
