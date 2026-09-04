@@ -39,6 +39,14 @@ _(none yet)_
   - Verified against the official LeetCode example, a hand-built pop-then-push regression case, and 200 randomized trials fuzzed against a plain `min()` reference implementation.
   - Code + self-tests: `solutions/2-stack/02-min-stack.py`
 
+- [x] **Evaluate Reverse Polish Notation** (LC 150) — 2026-09-04
+  - Walk tokens left to right (no need to reverse the list first - a stack gives LIFO pop order regardless of scan direction). Push numbers; on an operator, pop the top two (`b` first since it's most recent, then `a`), apply the operator to `(a, b)`, push the result back.
+  - Operator dispatch via a dict mapping each operator string to a function (`operator.add`/`sub`/`mul` plus a lambda for `/`) instead of an if/elif chain - same pattern as the `pairs` dict in Valid Parentheses.
+  - Avoided a classic trap: detecting numbers with `str.isdigit()` breaks on negatives (`"-3".isdigit()` is `False`); checking membership in the fixed operator set sidesteps it entirely.
+  - Division needs to truncate toward zero, not floor - Python's `//` floors toward negative infinity, which disagrees with truncation on negative results (`-7 // 2 == -4`, truncation wants `-3`). Used `int(a / b)` instead.
+  - Caught one real bug via testing: a single-number input with no operators (e.g. `["18"]`) never passes through the `int(stack.pop())` conversion that happens inside the operator branch, so the raw string token was returned unconverted (`'18'` instead of `18`). Fixed by wrapping the final `return` in `int(...)` - sufficient since it's the function's only exit point.
+  - Code + self-tests: `solutions/2-stack/03-evaluate-reverse-polish-notation.py`
+
 ## Binary Search
 _(none yet)_
 
