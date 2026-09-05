@@ -47,6 +47,15 @@ _(none yet)_
   - Caught one real bug via testing: a single-number input with no operators (e.g. `["18"]`) never passes through the `int(stack.pop())` conversion that happens inside the operator branch, so the raw string token was returned unconverted (`'18'` instead of `18`). Fixed by wrapping the final `return` in `int(...)` - sufficient since it's the function's only exit point.
   - Code + self-tests: `solutions/2-stack/03-evaluate-reverse-polish-notation.py`
 
+- [x] **Daily Temperatures** (LC 739) — 2026-09-04
+  - The hardest conceptual jump so far on the roadmap - took several rounds of tracing a concrete example to find the insight, rather than one clean bug fix.
+  - Brute force scans forward from every index until it finds a warmer day (O(n^2)) - a long decreasing run gets rescanned from every index inside it.
+  - Key insight found by tracing `[73,74,75,71,69,72,76,73]` by hand: increasing runs resolve immediately (each day's answer is just the next day), but decreasing runs pile multiple days up waiting for the *same* future day - e.g. both 71 and 69 end up resolved by the same later 72.
+  - That means a running "waiting list" of unresolved indices is always non-increasing in temperature from oldest to newest, which is exactly why a stack (not a queue) is the right structure: a new warm day is guaranteed to beat the most-recently-added (lowest-temp) waiting entry first, so pop-and-check from the top, continuing to pop while the new temperature keeps beating the entries beneath it.
+  - First code attempt had three separate issues, fixed one at a time: `for i, t in temperatures` (crashes - a plain list of ints isn't a list of pairs to unpack; needed `enumerate(temperatures)`), writing the resolved answer to `result[i]` (today, the index that just found a warmer day) instead of `result[index]` (the popped index that was actually waiting and just got its answer), and a missing `return result` at the end (silently returned `None`).
+  - Verified against the official examples, edge cases (strictly decreasing, all-equal temperatures, single element), and 500 randomized trials cross-checked against a brute-force reference implementation.
+  - Code + self-tests: `solutions/2-stack/04-daily-temperatures.py`
+
 ## Binary Search
 _(none yet)_
 
