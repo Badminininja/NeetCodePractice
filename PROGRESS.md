@@ -56,6 +56,13 @@ _(none yet)_
   - Verified against the official examples, edge cases (strictly decreasing, all-equal temperatures, single element), and 500 randomized trials cross-checked against a brute-force reference implementation.
   - Code + self-tests: `solutions/2-stack/04-daily-temperatures.py`
 
+- [x] **Car Fleet** (LC 853) — 2026-09-07
+  - Reframed each car's motion as a "solo travel time" to the target: `(target - position) / speed`. A car merges into the fleet ahead of it exactly when its solo time is <= the time of the car currently leading; otherwise it arrives later and starts a new fleet.
+  - First hand-traced version happened to land on the right answer (3 fleets) for the example traced by hand, but that turned out to be a coincidence, not a correct algorithm - fuzz-testing against a reference implementation across 2000 random trials found 576 mismatches. A minimal counterexample (`target=14, position=[2,9,7], speed=[3,1,3]`) exposed a wrong traversal direction and a wrong tracked-time update rule; corrected both (walk from closest-to-target outward, only update the tracked time on a strictly greater value) and re-verified with zero mismatches across 5000 trials.
+  - Translating the corrected idea into code introduced a second, more subtle bug: sorted `cars` descending by position (closest first) and consumed the resulting `times` list with `stack.pop()` - but `pop()` removes from the *end* of a list, so the descending sort put the farthest car last, meaning `pop()` grabbed it *first* and silently reversed the walk again. Fuzz-testing caught it immediately (1433/2000 mismatches). Fixed by sorting ascending instead (no `reverse=True`), so the closest car ends up last and gets popped first, matching the intended direction.
+  - Verified against the official LeetCode examples, an empty-input edge case, and both fuzz-found counterexamples, plus the earlier 2000/5000-trial randomized runs.
+  - Code + self-tests: `solutions/2-stack/05-car-fleet.py`
+
 ## Binary Search
 _(none yet)_
 
