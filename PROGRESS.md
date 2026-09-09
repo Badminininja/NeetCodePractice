@@ -17,7 +17,16 @@ _Worked through in a separate chat and imported here. Full per-problem write-ups
 - [x] **Longest Consecutive Sequence** (LC 128) — walking forward from every number is O(n²) from redundant re-walks of the same run. Only start a walk from a true sequence start (`num - 1 not in set`) to make it O(n).
 
 ## Two Pointers
-_(none yet)_
+
+- [x] **Valid Palindrome** (LC 125) — 2026-09-09
+  - Initial plan was a manual index loop (`i` vs `length - i`) rather than named pointers; walking through it by hand exposed the off-by-one immediately (`length - i` overruns valid indices at `i = 0`), which pushed the reframe to explicit `left`/`right` pointers converging toward each other — the mental model that generalizes to the rest of this category.
+  - First full draft had a run of small syntax slips caught one at a time: `len(str)` (indexing the builtin type instead of the parameter `s`), `.isalum()` (typo for `.isalnum()`), a stray dot in `s.[right]`, and a missing `:` on the comparison line.
+  - Real logic bug once it ran: forgot to advance `left`/`right` after a successful character match, so the loop spun forever on any matching pair instead of progressing.
+  - Second logic bug: the `left > right` bounds check was ordered after the skip-non-alnum branches, so a string of nothing but punctuation (e.g. `",,"`) could walk `left` straight past `right` and off the end of the string before the bounds check ever ran. Fixed by checking bounds first, before touching either index.
+  - Misread the prompt's "case-insensitive" as "case-sensitive" on first pass, so `s[left] != s[right]` was left as a strict comparison. Caught by tracing the problem's own canonical example, `"A man, a plan, a canal: Panama"`: under a strict comparison the very first pair (`'A'` vs `'a'`) would fail it, contradicting the expected `True`, which forced a re-read of the prompt.
+  - Added `.lower()` only at the comparison line rather than lowercasing the whole string up front — by that point in the loop both characters have already passed the `isalnum()` filter, so nothing gets lowered that didn't need to be.
+  - Verified against the official example, the official negative example (`"race a car"`), and edge cases: empty string, all-punctuation string, single character, and a mismatched-case digit/letter pair (`"0P"`).
+  - Code + self-tests: `solutions/3-two-pointers/01-valid-palindrome.py`
 
 ## Sliding Window
 _(none yet)_
