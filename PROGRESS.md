@@ -28,6 +28,14 @@ _Worked through in a separate chat and imported here. Full per-problem write-ups
   - Verified against the official example, the official negative example (`"race a car"`), and edge cases: empty string, all-punctuation string, single character, and a mismatched-case digit/letter pair (`"0P"`).
   - Code + self-tests: `solutions/3-two-pointers/01-valid-palindrome.py`
 
+- [x] **Two Integer Sum II** (LC 167) — 2026-09-10
+  - Two pointers again, but the sorted-array structure replaces the hashmap from the original Two Sum: moving `left` up only increases the sum and moving `right` down only decreases it, so comparing the current sum to target tells you unambiguously which pointer to move.
+  - Two bugs on the first pass: `while true` (lowercase — Python's boolean is `True`), and once that was fixed, the "sum too big" branch moved `index1` instead of `index2` — so the right pointer never actually moved, and the search wasn't converging from both ends at all.
+  - Reasoned through two edge cases before coding them in, and both held up: no explicit "no solution" fallback needed, since the problem guarantees exactly one valid pair; and no explicit `index1 == index2` check needed either, since a correctly-converging two-pointer walk is guaranteed to land on the (distinct-index) answer before the pointers could ever meet.
+  - Also caught that the answer needed to be returned 1-indexed, not as the raw 0-indexed positions the loop naturally produces.
+  - Verified against the official examples plus a duplicate-values case, and fuzz-tested the pointer convergence itself (20,000 random trials against a brute-force reference) once the pointer-movement bug was fixed.
+  - Code + self-tests: `solutions/3-two-pointers/02-two-integer-sum-ii.py`
+
 ## Sliding Window
 _(none yet)_
 
