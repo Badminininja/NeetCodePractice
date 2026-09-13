@@ -36,6 +36,18 @@ _Worked through in a separate chat and imported here. Full per-problem write-ups
   - Verified against the official examples plus a duplicate-values case, and fuzz-tested the pointer convergence itself (20,000 random trials against a brute-force reference) once the pointer-movement bug was fixed.
   - Code + self-tests: `solutions/3-two-pointers/02-two-integer-sum-ii.py`
 
+- [ ] **3Sum** (LC 15) — reserved as `solutions/3-two-pointers/03-three-sum.py`, not yet completed independently.
+  - Got the right shape solo: sort the array, loop `i` over it fixing one number, then run a Two-Sum-II-style two-pointer search on the remainder for a pair summing to `-nums[i]`, collecting results in a `set` of tuples to dedupe instead of manually skip-checking repeated values.
+  - Ran out of time before fixing the remaining bugs (missing `:` on the `if` lines, `for i in len(nums) - 3` instead of a proper `range(...)`, `left`/`right` initialized once above the loop instead of being reset to `i + 1` / `len(nums) - 1` inside it every iteration, `found` declared as a list but called with `.add()`, and no `return` statement) — took the full worked solution as a deliberate time-crunch exception rather than debug it solo. Revisit and rebuild from scratch before checking this off.
+
+- [x] **Container With Most Water** (LC 11) — 2026-09-12
+  - First problem in this category where the two-pointer move rule isn't "compare a sum to a target" — it's "which wall is currently the limiting (shorter) one." Area between two lines is `min(height[left], height[right]) * (right - left)`; moving the taller pointer can only shrink the width with no chance of raising the height cap, so only moving the shorter pointer's side can ever improve on the current best.
+  - First draft had `right` moving unconditionally every iteration (`right += 1`, outside the `if` block, and incrementing instead of decrementing) while `left` only moved conditionally — so `right` marched straight past the end of the array within a couple of iterations regardless of what `left` did, crashing with an index-out-of-range error before the loop's own bounds check ever got a chance to fire.
+  - Second draft fixed the direction and used `continue` to skip the `right -= 1` line whenever `left` moved instead — a valid substitute for `if`/`else` here, since nothing else follows that line in the loop body. But the comparison itself was still backwards: `if heights[left] >= heights[right]: left += 1` moves `left` when it's the *taller* wall, the opposite of the rule. Caught by fuzz-testing against a brute-force reference and by tracing the classic `[1,8,6,2,5,4,8,3,7]` example by hand, where the first comparison should move the shorter left wall but instead moved the taller right wall.
+  - Flipped the comparison to `<=` so `left` only advances when it's the shorter-or-equal side, matching the rule.
+  - Verified against the official example plus five other hand-picked cases, and fuzz-tested (20,000 random trials against a brute-force reference), all passing.
+  - Code + self-tests: `solutions/3-two-pointers/04-container-with-most-water.py`
+
 ## Sliding Window
 _(none yet)_
 
