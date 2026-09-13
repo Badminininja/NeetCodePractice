@@ -92,6 +92,17 @@ _(none yet)_
   - Verified against the official LeetCode examples, an empty-input edge case, and both fuzz-found counterexamples, plus the earlier 2000/5000-trial randomized runs.
   - Code + self-tests: `solutions/2-stack/05-car-fleet.py`
 
+- [x] **Largest Rectangle in Histogram** (LC 84) — 2026-09-13
+  - Reframed as a per-bar question: "what's the biggest rectangle where THIS bar's height is the limiting (minimum) height?" That's bounded by the nearest strictly-shorter bar on each side - anything taller in between can't cap it. Every possible rectangle's limiting height belongs to exactly one bar, so maxing this per-bar answer over all bars covers every case.
+  - One left-to-right pass with a stack of indices gets both boundaries at once: the stack stays increasing in height bottom-to-top, and when a shorter bar shows up, pop (possibly several times) - right boundary is the current index, left boundary is whatever's exposed on the stack after the pop (or -1 if empty). Used a sentinel `0` appended to the end so leftover stack entries get cleaned up by the same loop instead of a separate pass, since a zero-height bar is guaranteed shorter than everything still on the stack.
+  - First code draft looped with `for i in enumerate(heights)`, forgetting `enumerate()` yields `(index, value)` pairs - `i` itself was a tuple, breaking every `heights[i]` lookup and, since the tuple got pushed onto the stack too, `heights[stack[-1]]` as well.
+  - After unpacking properly, `area = width * height` referenced an undefined `height` variable - needed `heights[currentHeight]`, since `currentHeight` (despite the name) held the popped *index*, not its height.
+  - A structural bug followed: `if not stack: push` and the popping `if` were two separate top-level `if`s instead of `if`/`elif`, so right after pushing into an empty stack, the very next check compared the just-pushed bar against itself (always true) and popped it straight back off - the stack could never hold more than one element.
+  - Restructuring to `if <empty or shorter>: push; continue` fixed that but exposed the next bug: the popping branch used a single `if` instead of a `while`, missing the "pop several times per index" case (same shape as Daily Temperatures) - and after that one pop, the current index was never pushed anywhere, silently dropping it from all future width calculations.
+  - Final fix dropped the separate push branch entirely: `while stack and heights[stack[-1]] >= heights[i]: pop and compute`, followed by an *unconditional* `stack.append(i)` after the loop - push isn't a separate case from popping, it's just "always happens once the while loop is done," exactly like Daily Temperatures.
+  - Verified against the official examples, single-element/strictly-increasing/strictly-decreasing/all-equal edge cases, and 2000 randomized trials cross-checked against a brute-force O(n²) reference.
+  - Code + self-tests: `solutions/2-stack/06-largest-rectangle-in-histogram.py`
+
 ## Binary Search
 _(none yet)_
 
