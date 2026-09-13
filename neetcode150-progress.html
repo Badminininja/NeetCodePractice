@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeetCode 150 &mdash; time-weighted progress</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-alt: #f5f5f4;
+    --card: #f5f5f4;
+    --text: #18181b;
+    --text-secondary: #52525b;
+    --text-muted: #8a8a86;
+    --border: #e4e4e2;
+    --tick-border: #2a78d6;
+    --tick-done: #0f6e56;
+    --tick-done-bg: #e1f5ee;
+    --tick-empty: #ececeb;
+    --pace-ahead: #0f6e56;
+    --pace-behind: #b45309;
+    --target-line: #52525b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #18181a;
+      --bg-alt: #202022;
+      --card: #202022;
+      --text: #f4f4f3;
+      --text-secondary: #c7c7c2;
+      --text-muted: #8f8f8a;
+      --border: #333335;
+      --tick-border: #5b9bea;
+      --tick-done: #34c58f;
+      --tick-done-bg: #123329;
+      --tick-empty: #2a2a2c;
+      --pace-ahead: #34c58f;
+      --pace-behind: #f0a94e;
+      --target-line: #c7c7c2;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; }
+  .subtitle { font-size: 14px; color: var(--text-secondary); margin: 0 0 2rem; }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 1.75rem;
+  }
+  .stat-card {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+  }
+  .stat-label { font-size: 12px; color: var(--text-secondary); margin: 0 0 4px; }
+  .stat-value { font-size: 22px; font-weight: 600; margin: 0; }
+  .overall-track {
+    position: relative;
+    height: 30px;
+    background: var(--bg-alt);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    overflow: visible;
+  }
+  .overall-fill {
+    height: 100%;
+    background: var(--tick-done);
+    border-radius: 8px;
+    width: 0%;
+    transition: width 0.3s;
+  }
+  .target-marker {
+    position: absolute;
+    top: -6px;
+    bottom: -6px;
+    left: 0%;
+    border-left: 2px dashed var(--target-line);
+  }
+  .caption {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0 0 2.5rem;
+  }
+  .cat-row { margin-bottom: 16px; }
+  .cat-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+    gap: 8px;
+  }
+  .cat-name { font-weight: 500; color: var(--text); }
+  .cat-bar {
+    display: flex;
+    height: 24px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--tick-empty);
+  }
+  .tick {
+    height: 100%;
+    cursor: pointer;
+    border-right: 2px solid var(--tick-border);
+    background: transparent;
+  }
+  .tick:last-child { border-right: none; }
+  .tick.done { background: var(--tick-done-bg); }
+  .tick:hover { filter: brightness(0.92); }
+  .footer {
+    margin-top: 2.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .footer p { margin: 0 0 8px; }
+  button#reset-btn {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  button#reset-btn:hover { background: var(--bg-alt); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>NeetCode 150 &mdash; time-weighted progress</h1>
+  <p class="subtitle" id="subtitle">Loading&hellip;</p>
+
+  <div class="stats">
+    <div class="stat-card">
+      <p class="stat-label">Hours logged</p>
+      <p class="stat-value" id="stat-hours">&ndash;</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Percent complete</p>
+      <p class="stat-value" id="stat-percent">&ndash;</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Pace vs target</p>
+      <p class="stat-value" id="stat-pace">&ndash;</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Days to target</p>
+      <p class="stat-value" id="stat-days">&ndash;</p>
+    </div>
+  </div>
+
+  <div class="overall-track">
+    <div class="overall-fill" id="overall-fill"></div>
+    <div class="target-marker" id="target-marker"></div>
+  </div>
+  <p class="caption">Start Sep 3, 2026 &middot; target Nov 29, 2026 &middot; dashed line = where steady pace puts you as of today &middot; bar width = estimated hours, not problem count &middot; blue lines mark each problem's boundary</p>
+
+  <div id="rows"></div>
+
+  <div class="footer">
+    <p>Click any segment to mark a problem done or not done &mdash; toggles are saved in this browser only (localStorage), not in the file itself. To make a change permanent for anyone who opens this file from the repo, edit the <code>done</code> flag for that problem in the <code>DATA</code> array in the source and commit it.</p>
+    <p>Time estimates are modeled from difficulty (Easy/Medium/Hard) and a per-category complexity multiplier (DP and Advanced Graphs weighted heaviest, Bit Manipulation/Math lightest) &mdash; not measured from actual solve times. The target-pace line assumes perfectly even effort every day between the start and target dates; treat it as a reference, not a deadline.</p>
+    <button id="reset-btn">Reset local toggles</button>
+  </div>
+</div>
+
+<script>
+const DATA = [["Arrays & Hashing","Contains Duplicate","Easy",true,30],["Arrays & Hashing","Valid Anagram","Easy",true,30],["Arrays & Hashing","Two Sum","Easy",true,30],["Arrays & Hashing","Group Anagrams","Medium",true,55],["Arrays & Hashing","Top K Frequent Elements","Medium",true,55],["Arrays & Hashing","Product of Array Except Self","Medium",true,55],["Arrays & Hashing","Valid Sudoku","Medium",true,55],["Arrays & Hashing","Encode and Decode Strings","Medium",true,55],["Arrays & Hashing","Longest Consecutive Sequence","Medium",true,55],["Two Pointers","Valid Palindrome","Easy",true,30],["Two Pointers","Two Integer Sum II","Medium",true,55],["Two Pointers","3Sum","Medium",false,55],["Two Pointers","Container With Most Water","Medium",true,55],["Two Pointers","Trapping Rain Water","Hard",false,95],["Sliding Window","Best Time to Buy and Sell Stock","Easy",false,30],["Sliding Window","Longest Substring Without Repeating Characters","Medium",false,60],["Sliding Window","Longest Repeating Character Replacement","Medium",false,60],["Sliding Window","Permutation in String","Medium",false,60],["Sliding Window","Minimum Window Substring","Hard",false,100],["Sliding Window","Sliding Window Maximum","Hard",false,100],["Stack","Valid Parentheses","Easy",true,30],["Stack","Min Stack","Medium",true,55],["Stack","Evaluate Reverse Polish Notation","Medium",true,55],["Stack","Generate Parentheses","Medium",false,55],["Stack","Daily Temperatures","Medium",true,55],["Stack","Car Fleet","Medium",true,55],["Stack","Largest Rectangle in Histogram","Hard",false,95],["Binary Search","Binary Search","Easy",false,30],["Binary Search","Search a 2D Matrix","Medium",false,60],["Binary Search","Koko Eating Bananas","Medium",false,60],["Binary Search","Find Minimum in Rotated Sorted Array","Medium",false,60],["Binary Search","Search in Rotated Sorted Array","Medium",false,60],["Binary Search","Time Based Key-Value Store","Medium",false,60],["Binary Search","Median of Two Sorted Arrays","Hard",false,100],["Linked List","Reverse Linked List","Easy",false,35],["Linked List","Merge Two Sorted Lists","Easy",false,35],["Linked List","Linked List Cycle","Easy",false,35],["Linked List","Reorder List","Medium",false,60],["Linked List","Remove Nth Node From End of List","Medium",false,60],["Linked List","Copy List with Random Pointer","Medium",false,60],["Linked List","Add Two Numbers","Medium",false,60],["Linked List","Find the Duplicate Number","Medium",false,60],["Linked List","LRU Cache","Medium",false,60],["Linked List","Merge k Sorted Lists","Hard",false,105],["Linked List","Reverse Nodes in k-Group","Hard",false,105],["Trees","Invert Binary Tree","Easy",false,35],["Trees","Maximum Depth of Binary Tree","Easy",false,35],["Trees","Diameter of Binary Tree","Easy",false,35],["Trees","Balanced Binary Tree","Easy",false,35],["Trees","Same Tree","Easy",false,35],["Trees","Subtree of Another Tree","Easy",false,35],["Trees","Lowest Common Ancestor of a BST","Medium",false,65],["Trees","Binary Tree Level Order Traversal","Medium",false,65],["Trees","Binary Tree Right Side View","Medium",false,65],["Trees","Count Good Nodes in Binary Tree","Medium",false,65],["Trees","Validate Binary Search Tree","Medium",false,65],["Trees","Kth Smallest Element in a BST","Medium",false,65],["Trees","Construct Binary Tree from Preorder and Inorder Traversal","Medium",false,65],["Trees","Binary Tree Maximum Path Sum","Hard",false,110],["Trees","Serialize and Deserialize Binary Tree","Hard",false,110],["Tries","Implement Trie (Prefix Tree)","Medium",false,65],["Tries","Design Add and Search Words Data Structure","Medium",false,65],["Tries","Word Search II","Hard",false,115],["Backtracking","Subsets","Medium",false,70],["Backtracking","Combination Sum","Medium",false,70],["Backtracking","Combination Sum II","Medium",false,70],["Backtracking","Permutations","Medium",false,70],["Backtracking","Subsets II","Medium",false,70],["Backtracking","Word Search","Medium",false,70],["Backtracking","Palindrome Partitioning","Medium",false,70],["Backtracking","Letter Combinations of a Phone Number","Medium",false,70],["Backtracking","N-Queens","Hard",false,125],["Heap / Priority Queue","Kth Largest Element in a Stream","Easy",false,35],["Heap / Priority Queue","Last Stone Weight","Easy",false,35],["Heap / Priority Queue","K Closest Points to Origin","Medium",false,65],["Heap / Priority Queue","Kth Largest Element in an Array","Medium",false,65],["Heap / Priority Queue","Task Scheduler","Medium",false,65],["Heap / Priority Queue","Design Twitter","Medium",false,65],["Heap / Priority Queue","Find Median from Data Stream","Hard",false,110],["Intervals","Insert Interval","Medium",false,60],["Intervals","Merge Intervals","Medium",false,60],["Intervals","Non-overlapping Intervals","Medium",false,60],["Intervals","Meeting Rooms","Easy",false,30],["Intervals","Meeting Rooms II","Medium",false,60],["Intervals","Minimum Interval to Include Each Query","Hard",false,100],["Greedy","Maximum Subarray","Medium",false,65],["Greedy","Jump Game","Medium",false,65],["Greedy","Jump Game II","Medium",false,65],["Greedy","Gas Station","Medium",false,65],["Greedy","Hand of Straights","Medium",false,65],["Greedy","Merge Triplets to Form Target Triplet","Medium",false,65],["Greedy","Partition Labels","Medium",false,65],["Greedy","Valid Parenthesis String","Medium",false,65],["Graphs","Number of Islands","Medium",false,70],["Graphs","Max Area of Island","Medium",false,70],["Graphs","Clone Graph","Medium",false,70],["Graphs","Walls and Gates","Medium",false,70],["Graphs","Rotting Oranges","Medium",false,70],["Graphs","Pacific Atlantic Water Flow","Medium",false,70],["Graphs","Surrounded Regions","Medium",false,70],["Graphs","Course Schedule","Medium",false,70],["Graphs","Course Schedule II","Medium",false,70],["Graphs","Graph Valid Tree","Medium",false,70],["Graphs","Number of Connected Components in an Undirected Graph","Medium",false,70],["Graphs","Redundant Connection","Medium",false,70],["Graphs","Word Ladder","Hard",false,125],["Advanced Graphs","Reconstruct Itinerary","Hard",false,140],["Advanced Graphs","Min Cost to Connect All Points","Medium",false,80],["Advanced Graphs","Network Delay Time","Medium",false,80],["Advanced Graphs","Swim in Rising Water","Hard",false,140],["Advanced Graphs","Alien Dictionary","Hard",false,140],["Advanced Graphs","Cheapest Flights Within K Stops","Medium",false,80],["1-D Dynamic Programming","Climbing Stairs","Easy",false,40],["1-D Dynamic Programming","Min Cost Climbing Stairs","Easy",false,40],["1-D Dynamic Programming","House Robber","Medium",false,75],["1-D Dynamic Programming","House Robber II","Medium",false,75],["1-D Dynamic Programming","Longest Palindromic Substring","Medium",false,75],["1-D Dynamic Programming","Palindromic Substrings","Medium",false,75],["1-D Dynamic Programming","Decode Ways","Medium",false,75],["1-D Dynamic Programming","Coin Change","Medium",false,75],["1-D Dynamic Programming","Maximum Product Subarray","Medium",false,75],["1-D Dynamic Programming","Word Break","Medium",false,75],["1-D Dynamic Programming","Longest Increasing Subsequence","Medium",false,75],["1-D Dynamic Programming","Partition Equal Subset Sum","Medium",false,75],["2-D Dynamic Programming","Unique Paths","Medium",false,85],["2-D Dynamic Programming","Longest Common Subsequence","Medium",false,85],["2-D Dynamic Programming","Best Time to Buy and Sell Stock with Cooldown","Medium",false,85],["2-D Dynamic Programming","Coin Change II","Medium",false,85],["2-D Dynamic Programming","Target Sum","Medium",false,85],["2-D Dynamic Programming","Interleaving String","Medium",false,85],["2-D Dynamic Programming","Longest Increasing Path in a Matrix","Hard",false,145],["2-D Dynamic Programming","Distinct Subsequences","Hard",false,145],["2-D Dynamic Programming","Edit Distance","Medium",false,85],["2-D Dynamic Programming","Burst Balloons","Hard",false,145],["2-D Dynamic Programming","Regular Expression Matching","Hard",false,145],["Bit Manipulation","Single Number","Easy",false,25],["Bit Manipulation","Number of 1 Bits","Easy",false,25],["Bit Manipulation","Counting Bits","Easy",false,25],["Bit Manipulation","Reverse Bits","Easy",false,25],["Bit Manipulation","Missing Number","Easy",false,25],["Bit Manipulation","Sum of Two Integers","Medium",false,45],["Bit Manipulation","Reverse Integer","Medium",false,45],["Math & Geometry","Rotate Image","Medium",false,50],["Math & Geometry","Spiral Matrix","Medium",false,50],["Math & Geometry","Set Matrix Zeroes","Medium",false,50],["Math & Geometry","Happy Number","Easy",false,30],["Math & Geometry","Plus One","Easy",false,30],["Math & Geometry","Pow(x, n)","Medium",false,50],["Math & Geometry","Multiply Strings","Medium",false,50],["Math & Geometry","Detect Squares","Medium",false,50]];
+const START_DATE = new Date('2026-09-03T00:00:00');
+const TARGET_DATE = new Date('2026-11-29T00:00:00');
+const STORAGE_KEY = 'neetcode150-progress-overrides';
+
+function loadOverrides() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) { return {}; }
+}
+function saveOverrides(overrides) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides)); } catch (e) {}
+}
+
+let overrides = loadOverrides();
+const problems = DATA.map(d => {
+  const key = d[0] + '::' + d[1];
+  const base = d[3];
+  const done = Object.prototype.hasOwnProperty.call(overrides, key) ? overrides[key] : base;
+  return { category: d[0], name: d[1], difficulty: d[2], done: done, minutes: d[4], key: key };
+});
+
+function render() {
+  const now = new Date();
+  let fracElapsed = (now - START_DATE) / (TARGET_DATE - START_DATE);
+  fracElapsed = Math.max(0, Math.min(1, fracElapsed));
+  const daysLeft = Math.round((TARGET_DATE - now) / 86400000);
+
+  const totalMin = problems.reduce((s,p)=>s+p.minutes,0);
+  const doneMin = problems.filter(p=>p.done).reduce((s,p)=>s+p.minutes,0);
+  const pct = totalMin ? (doneMin/totalMin*100) : 0;
+  const targetPct = fracElapsed*100;
+  const diff = pct - targetPct;
+
+  document.getElementById('subtitle').textContent =
+    problems.filter(p=>p.done).length + ' of ' + problems.length + ' problems done — recalculated ' + now.toDateString();
+  document.getElementById('stat-hours').textContent = (doneMin/60).toFixed(1)+' / '+(totalMin/60).toFixed(0)+'h';
+  document.getElementById('stat-percent').textContent = pct.toFixed(1)+'%';
+  const paceEl = document.getElementById('stat-pace');
+  paceEl.textContent = (diff>=0?'+':'')+diff.toFixed(1)+'%';
+  paceEl.style.color = diff>=0 ? 'var(--pace-ahead)' : 'var(--pace-behind)';
+  document.getElementById('stat-days').textContent = daysLeft >= 0 ? (daysLeft+'d left') : ((-daysLeft)+'d past');
+
+  document.getElementById('overall-fill').style.width = pct+'%';
+  document.getElementById('target-marker').style.left = Math.min(100,Math.max(0,targetPct))+'%';
+
+  const byCat = {};
+  const cats = [];
+  problems.forEach(p=>{
+    if(!byCat[p.category]){ byCat[p.category]={name:p.category, items:[], total:0, done:0}; cats.push(byCat[p.category]); }
+    byCat[p.category].items.push(p);
+    byCat[p.category].total += p.minutes;
+    if(p.done) byCat[p.category].done += p.minutes;
+  });
+
+  const rows = document.getElementById('rows');
+  rows.innerHTML = '';
+  cats.forEach(cat=>{
+    const row = document.createElement('div');
+    row.className = 'cat-row';
+    const catPct = cat.total ? (cat.done/cat.total*100) : 0;
+    const doneCount = cat.items.filter(p=>p.done).length;
+    const head = document.createElement('div');
+    head.className = 'cat-head';
+    head.innerHTML = '<span class="cat-name">'+cat.name+'</span>'
+      + '<span>'+doneCount+'/'+cat.items.length+' &middot; '+(cat.total/60).toFixed(1)+'h &middot; '+Math.round(catPct)+'%</span>';
+    row.appendChild(head);
+    const bar = document.createElement('div');
+    bar.className = 'cat-bar';
+    cat.items.forEach(p=>{
+      const tick = document.createElement('div');
+      const w = (p.minutes/cat.total*100);
+      tick.className = 'tick' + (p.done ? ' done' : '');
+      tick.style.width = w+'%';
+      tick.title = p.name+' ('+p.difficulty+', ~'+p.minutes+' min)'+(p.done?' ✓ done':' — not started');
+      tick.addEventListener('click', ()=>{
+        p.done = !p.done;
+        overrides[p.key] = p.done;
+        saveOverrides(overrides);
+        render();
+      });
+      bar.appendChild(tick);
+    });
+    row.appendChild(bar);
+    rows.appendChild(row);
+  });
+}
+
+document.getElementById('reset-btn').addEventListener('click', ()=>{
+  overrides = {};
+  saveOverrides(overrides);
+  problems.forEach((p,i)=>{ p.done = DATA[i][3]; });
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
