@@ -54,6 +54,15 @@ _Worked through in a separate chat and imported here. Full per-problem write-ups
   - Verified against the official example plus five other hand-picked cases, and fuzz-tested (20,000 random trials against a brute-force reference), all passing.
   - Code + self-tests: `solutions/3-two-pointers/04-container-with-most-water.py`
 
+- [x] **Trapping Rain Water** (LC 42) — 2026-09-14
+  - Generalizes Container With Most Water from "just the two boundary walls" to "every position has its own left wall and right wall" — the water above any bar is capped by whichever of its two walls (tallest bar somewhere to its left, tallest somewhere to its right) is shorter.
+  - Considered a two-pass precomputed-array version (`leftMax[]`/`rightMax[]`, O(n) space) and a monotonic-stack version (same shape as Largest Rectangle in Histogram) before settling on the O(1)-space two-pointer version: keep a running `leftMax`/`rightMax` as `left`/`right` close inward, always advancing whichever side currently has the *smaller* running max.
+  - The insight that makes that safe: once `leftMax <= rightMax`, the *true* right wall (whatever it eventually turns out to be) can only end up at least as tall as the current `rightMax`, which is already ≥ `leftMax` — so the shorter of the two true walls bounding the `left` position is forced to be `leftMax`, and can be settled immediately without ever computing the true right wall.
+  - Settling a position: if its own height is a new record for its side, it becomes the new wall (no water sits above it yet); otherwise the gap between it and its side's running max is trapped water, added to the running total.
+  - First full draft was correct on the first attempt — verified against the official example, the Container-With-Most-Water-style array (`[4,2,0,3,2,5]`), a case that only ever exercises the right pointer (`[5,4,1,2]`), ties, single/two-element arrays, and 20,000 randomized trials against a brute-force reference.
+  - One edge case flagged for awareness, not required by LeetCode's own constraints (which guarantee at least one element): `trap([])` crashes with an `IndexError`, since `leftMax = height[left]` runs before the loop even starts and there's no index `0` to read from an empty list.
+  - Code + self-tests: `solutions/3-two-pointers/05-trapping-rain-water.py`
+
 ## Sliding Window
 _(none yet)_
 
