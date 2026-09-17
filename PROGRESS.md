@@ -64,7 +64,8 @@ _Worked through in a separate chat and imported here. Full per-problem write-ups
   - Code + self-tests: `solutions/3-two-pointers/05-trapping-rain-water.py`
 
 ## Sliding Window
-_(none yet)_
+
+- [x] **Best Time to Buy and Sell Stock** (LC 121) — 2026-09-14 — solved independently, first try, no bugs. Track a running low and the high seen since that low; a new low resets the window, a new (or tied) high extends it and rechecks `high - low` against the best profit so far. Code: `solutions/4-sliding-window/01-best-time-to-buy-and-sell-stock.py`
 
 ## Stack
 
